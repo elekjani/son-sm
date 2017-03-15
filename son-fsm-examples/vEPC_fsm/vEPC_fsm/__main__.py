@@ -1,8 +1,8 @@
-from dumb import dumb
-
+from vEPC_fsm import vEPC_fsm
 
 def main():
-    dumb.main()
+    vEPC_fsm.main()
+
 
 if __name__ == '__main__':
     main()

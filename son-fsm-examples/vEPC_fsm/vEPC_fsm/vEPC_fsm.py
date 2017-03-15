@@ -30,13 +30,10 @@ import logging
 import yaml
 from sonsmbase.smbase import sonSMbase
 
-logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger("fsm-configuration-1")
-LOG.setLevel(logging.DEBUG)
-logging.getLogger("son-mano-base:messaging").setLevel(logging.INFO)
+STATUS_TOPIC= 'specific.manager.registry.ssm.status'
+CONFIGURATION_TOPIC = 'son.configuration'
 
-
-class ConfigurationFSM(sonSMbase):
+class vEPC_fsm(sonSMbase):
 
     def __init__(self):
 
@@ -55,10 +52,12 @@ class ConfigurationFSM(sonSMbase):
 
         self.smtype = 'fsm'
         self.sfname = 'function'
-        self.name = 'configuration'
+        self.name = 'vEPC'
         self.id = '1'
         self.version = 'v0.1'
         self.description = 'An FSM that reconfigures a VNF'
+
+        self.logger = logging.getLogger("%s.%s" % (self.__module__, self.__class__.__name__))
 
         super(self.__class__, self).__init__(smtype= self.smtype,
                                              sfname= self.sfname,
@@ -67,28 +66,32 @@ class ConfigurationFSM(sonSMbase):
                                              version = self.version,
                                              description = self.description)
 
+    def _publish(self, topic, **kwords):
+        self.manoconn.publish(topic=topic, message=yaml.dump(kwords))
+
     def on_registration_ok(self):
-        LOG.debug("Received registration ok event.")
-        self.manoconn.publish(topic='specific.manager.registry.ssm.status', message=yaml.dump(
-                                  {'name':self.name,'status': 'Registration is done, initialising the configuration...'}))
-        self.manoconn.subscribe(self.on_configuration, 'son.configuration')
+        self.logger.debug("Received registration ok event.")
+        self._publish(STATUS_TOPIC, name=self.name,
+                      status="Registration is done, initialising the configuration...")
+        self.manoconn.subscribe(self.on_configuration, CONFIGURATION_TOPIC)
 
     def on_configuration(self, ch, method, props, response):
-        LOG.info('Start configuration ...')
-        response = yaml.load(str(response))
-        list = response['VNFR']
+        self.logger.info('Start configuration ...')
+        instantiation_descriptor = yaml.load(str(response))
+        vnf_instances = instantiation_descriptor['VNFR']
         host_ip = None
-        for x in range(len(list)):
-            if response['VNFR'][x]['virtual_deployment_units'][0]['vm_image'] == 'sonata-vfw':
-                host_ip = response['VNFR'][x]['virtual_deployment_units'][0]['vnfc_instance'][0]['connection_points'][0]['type'][
-                    'address']
+        for vnf in vnf_instances:
+            for vdu in vnf['virtual_deployment_units']:
+                if vdu['vm_image'] == 'sonata-vfw':
+                    host_ip = vdu['vnfc_instance'][0]['connection_points'][0]['type']['address']
 
-        self.manoconn.publish(topic='specific.manager.registry.ssm.status', message=yaml.dump(
-            {'name': self.name, 'status': "IP address:'{0}'".format(host_ip)}))
-        LOG.debug("IP address:'{0}'".format(host_ip))
+        self._publish(STATUS_TOPIC, name=self.name, status="IP address:'%s'" % host_ip)
+        self.logger.debug("IP address:'%s'" % host_ip)
+
 
 def main():
-    ConfigurationFSM()
+    vEPC_fsm()
+
 
 if __name__ == '__main__':
     main()

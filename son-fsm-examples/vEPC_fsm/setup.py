@@ -39,7 +39,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='vEPC-fsm',
+    name='vEPC_fsm',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -50,7 +50,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/elekjani/son-sm/tree/master/son-fsm-examples/vEPC-fsm',
+    url='https://github.com/elekjani/son-sm/tree/master/son-fsm-examples/vEPC_fsm',
 
     # Author details
     author='Janos Elek',
@@ -70,6 +70,6 @@ setup(
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
-        'console_scripts': ['vEPC-fsm=vEPC-fsm.__main__:main'],
+        'console_scripts': ['vEPC_fsm=vEPC_fsm.__main__:main'],
     },
 )

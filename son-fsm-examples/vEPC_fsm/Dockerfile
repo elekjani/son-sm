@@ -28,15 +28,15 @@ ENV mongo_port 27017
 ENV broker_host amqp://guest:guest@broker:5672/%2F
 ENV broker_exchange son-kernel
 
-ADD son-fsm-examples/vEPC-fsm /vEPC-fsm
+ADD son-fsm-examples/vEPC_fsm /vEPC_fsm
 ADD son-sm-template /son-sm-template
 ADD utils/delayedstart.sh /delayedstart.sh
 
 WORKDIR /son-sm-template
 RUN python setup.py install
 
-WORKDIR /vEPC-fsm
+WORKDIR /vEPC_fsm
 RUN python setup.py develop
 
-CMD ["vEPC-fsm"]
+CMD ["vEPC_fsm"]
 
